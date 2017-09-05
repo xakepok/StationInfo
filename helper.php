@@ -86,7 +86,7 @@ class ModDirectioninfoHelper {
 		$db =& JFactory::getDbo();
 		$query = $db->getQuery(true);
 		$query
-			->select('DISTINCT `s`.`id` as `stationID`, `s`.`name` as `name`, `n`.`popularName` as `popularName`, `t`.`time_1`, `t`.`time_2`, `t`.`turnstiles`')
+			->select('DISTINCT `s`.`id` as `stationID`, `s`.`name` as `name`, `n`.`popularName` as `popularName`, `t`.`time_1`, `t`.`time_2`, `t`.`timemask`, `t`.`turnstiles`')
 			->from('#__rw2_station_tickets as `t`')
 			->leftJoin('#__rw2_directions as `d` ON `d`.`stationID` = `t`.`stationID`')
 			->leftJoin('#__rw2_station_names as `n` ON `n`.`stationID` = `t`.`stationID`')
@@ -99,7 +99,9 @@ class ModDirectioninfoHelper {
 		$stations = array(); //Результирующий массив
 		foreach ($result as $item) {
 			$sname = (!empty($item->popularName)) ? $item->popularName : $item->name;
-			$stations[$sname][] = ($item->time_1 == '00:00:00' && $item->time_2 == '23:59:59') ? JText::_('MOD_DIRECTIONINFO_EVERYTIME') : date("H.i", strtotime(date("Y-m-d ").$item->time_1)).'-'.date("H.i", strtotime(date("Y-m-d ").$item->time_2));
+			$t = ($item->time_1 == '00:00:00' && $item->time_2 == '23:59:59') ? JText::_('MOD_DIRECTIONINFO_EVERYTIME') : date("H.i", strtotime(date("Y-m-d ").$item->time_1)).'-'.date("H.i", strtotime(date("Y-m-d ").$item->time_2));
+			$t .= ' ('.JText::_('MOD_DIRECTIONINFO_TIMEMASK_'.$item->timemask.'_SHORT').')';
+			$stations[$sname][] = $t;
 		}
 		$result = array();
 		foreach ($stations as $name => $value) {
