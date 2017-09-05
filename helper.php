@@ -91,7 +91,7 @@ class ModDirectioninfoHelper {
 			->leftJoin('#__rw2_directions as `d` ON `d`.`stationID` = `t`.`stationID`')
 			->leftJoin('#__rw2_station_names as `n` ON `n`.`stationID` = `t`.`stationID`')
 			->leftJoin('#__rw2_stations as `s` ON `s`.`id` = `t`.`stationID`')
-			->where("`d`.`directionID` = {$dir} AND `t`.`time_1` IS NOT NULL AND `t`.`time_2` IS NOT NULL")
+			->where("`d`.`directionID` = {$dir} AND `t`.`turnstiles` IS NULL")
 			->order('`d`.`indexID`, `t`.`time_1`')
 		;
 		$db->setQuery($query);
@@ -100,6 +100,7 @@ class ModDirectioninfoHelper {
 		foreach ($result as $item) {
 			$sname = (!empty($item->popularName)) ? $item->popularName : $item->name;
 			$t = ($item->time_1 == '00:00:00' && $item->time_2 == '23:59:59') ? JText::_('MOD_DIRECTIONINFO_EVERYTIME') : date("H.i", strtotime(date("Y-m-d ").$item->time_1)).'-'.date("H.i", strtotime(date("Y-m-d ").$item->time_2));
+			if ($item->time_1 == null) $t = JText::_('MOD_DIRECTIONINFO_NODESC');
 			$t .= ' ('.JText::_('MOD_DIRECTIONINFO_TIMEMASK_'.$item->timemask.'_SHORT').')';
 			$stations[$sname][] = $t;
 		}
