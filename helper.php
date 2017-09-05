@@ -5,8 +5,24 @@ class ModDirectioninfoHelper {
 		return JFactory::getUser()->authorise($p, 'com_railway2');
 	}
 
+	/* Инфа о коконах */
+	public static function getCocon()
+	{
+		$dir = JFactory::getApplication()->input->getInt('id', 0);
+		if ($dir == 0) return false;
+
+		$db    =& JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select('`cocon`')
+			->from('#__rw2_direction_info')
+			->where("`directionID` = {$dir}");
+		$db->setQuery($query, 0, 1);
+		return $db->loadResult();
+	}
+
 	/* Информация о направлении */
-	public static  function getInfo()
+	public static function getInfo()
 	{
 		$dir = JFactory::getApplication()->input->getInt('id', 0);
 		if ($dir == 0) return false;
@@ -28,7 +44,8 @@ class ModDirectioninfoHelper {
 	}
 
 	/* Пересадки на метро */
-	public static function getCrosses() {
+	public static function getCrosses()
+	{
 		$dir = JFactory::getApplication()->input->getInt('id', 0);
 		if ($dir == 0) return false;
 
@@ -61,7 +78,8 @@ class ModDirectioninfoHelper {
 	}
 
 	/* Время работы касс на направлении */
-	public static function getDescTime() {
+	public static function getDescTime()
+	{
 		$dir = JFactory::getApplication()->input->getInt('id', 0);
 		if ($dir == 0) return false;
 
@@ -91,7 +109,8 @@ class ModDirectioninfoHelper {
 	}
 
 	/* Станции с турникетами */
-	public static function getTurnstiles() {
+	public static function getTurnstiles()
+	{
 		$dir = JFactory::getApplication()->input->getInt('id', 0);
 
 		if ($dir == 0) return false;
