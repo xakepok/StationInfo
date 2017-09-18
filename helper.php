@@ -1,135 +1,81 @@
 <?php
-class ModDirectioninfoHelper {
+class ModStationinfoHelper {
 	/* Запрос прав */
 	static function canDo($p) {
 		return JFactory::getUser()->authorise($p, 'com_railway2');
 	}
 
-	/* Инфа о коконах */
-	public static function getCocon()
-	{
-		$dir = JFactory::getApplication()->input->getInt('id', 0);
-		if ($dir == 0) return false;
+	/* Инфа о станции */
+	public static function getInfo() {
+		$id = JFactory::getApplication()->input->getInt('id', 0);
+		if ($id == 0) return false;
 
-		$db    =& JFactory::getDbo();
+		$db = JFactory::getDbo();
 		$query = $db->getQuery(true);
 		$query
-			->select('`cocon`')
-			->from('#__rw2_direction_info')
-			->where("`directionID` = {$dir}");
-		$db->setQuery($query, 0, 1);
-		return $db->loadResult();
-	}
-
-	/* Информация о направлении */
-	public static function getInfo()
-	{
-		$dir = JFactory::getApplication()->input->getInt('id', 0);
-		if ($dir == 0) return false;
-
-		$db    =& JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select('*')
-			->from('#__rw2_directions_list')
-			->where("`id` = {$dir}");
-		if (!self::canDo('core.admin'))
-		{
-			$query->where('`active` = 1');
-		}
+			->select('`s`.`name`,`n`.`popularName`, `type`.`title` as `tip`, `reg`.`region`, `rail`.`road`, `rail`.`division`, `dir`.`id` as `directionID`, `dir`.`title` as `direction`, `dir`.`color`, `d`.`zoneID`, `d`.`indexID`, `code`.`esr`, `code`.`express`')
+			->from('#__rw2_stations as `s`')
+			->leftJoin('#__rw2_station_types as `type` ON `type`.`id` = `s`.`type`')
+			->leftJoin('#__rw2_regions as `reg` ON `reg`.`id` = `s`.`region`')
+			->leftJoin('#__rw2_railways as `rail` ON `rail`.`id` = `s`.`railway`')
+			->leftJoin('#__rw2_directions as `d` ON `d`.`stationID` = `s`.`id`')
+			->leftJoin('#__rw2_directions_list as `dir` ON `dir`.`id` = `d`.`directionID`')
+			->leftJoin('#__rw2_station_codes as `code` on `code`.`id` = `s`.`id`')
+			->leftJoin('#__rw2_station_names as `n` ON `n`.`stationID` = `s`.`id`')
+			->where('`s`.`id` = '.$id);
 		$db->setQuery($query, 0, 1);
 		$result = $db->loadObject();
-
-		return (!empty($result->id)) ? $db->loadObject() : false;
-	}
-
-	/* Пересадки на метро */
-	public static function getCrosses()
-	{
-		$dir = JFactory::getApplication()->input->getInt('id', 0);
-		if ($dir == 0) return false;
-
-		$db =& JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select('`c`.`stationID`, `s`.`name`, `n`.`popularName`, `m`.`title_ru` as `metroStation`, `l`.`title_ru` as `metroLine`, `l`.`color`')
-			->from('#__rw2_cross_metro as `c`')
-			->leftJoin('#__rw2_stations as `s` ON `s`.`id` = `c`.`stationID`')
-			->leftJoin('#__rw2_directions as `d` ON `d`.`stationID` = `c`.`stationID`')
-			->leftJoin('#__rw2_station_names as `n` ON `n`.`stationID` = `c`.`stationID`')
-			->leftJoin('#__rw2_metro_stations as `m` ON `m`.`id` = `c`.`metroID`')
-			->leftJoin('#__rw2_metro_lines as `l` ON `l`.`id` = `m`.`line`')
-			->where("`d`.`directionID` = {$dir} AND `m`.`active` = 1 AND `l`.`active` = 1");
-		$db->setQuery($query);
-		$result = $db->loadObjectList();
-		if (empty($result)) return false;
-		$cross = array();
-		foreach ($result as $item) {
-			$name = (!empty($item->popularName)) ? $item->popularName : $item->name;
-			$link = JHtml::link(JRoute::_('index.php?option=com_railway2&view=station&id='.$item->stationID.'&Itemid=236'), $name);
-			if (!isset($cross[$link])) $cross[$link] = $cross[$link] = array();
-			$cross[$link][] = "<a class='jutooltip' style='color: {$item->color};' title='".$item->metroLine." ".mb_strtolower(JText::_('MOD_DIRECTIONINFO_METRO_LINE'))."'>$item->metroStation</a>";
-		}
-		$result = array();
-		foreach ($cross as $station => $metro) {
-			$result[$station] = implode(', ', $metro);
-		}
+		if (!isset($result->esr)) return false;
 		return $result;
 	}
 
-	/* Время работы касс на направлении */
+	/* Инфа о турникетах */
+	public static function getTurn() {
+		$id = JFactory::getApplication()->input->getInt('id', 0);
+		if ($id == 0) return false;
+
+		$db = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select('`v`.`variant` as `turnstiles`')
+			->from('#__rw2_station_tickets as `t`')
+			->where("`stationID` = {$id}")
+			->leftJoin('#__rw2_turnstile_variants as `v` ON `v`.`id` = `t`.`turnstiles`');
+		$db->setQuery($query);
+		$result = $db->loadResult();
+		return ($result != null) ? $result : JText::_('COM_RAILWAY2_TURN_NO_EXISTS');
+	}
+
+	/* Инфа о кассах */
 	public static function getDescTime()
 	{
-		$dir = JFactory::getApplication()->input->getInt('id', 0);
-		if ($dir == 0) return false;
+		$id = JFactory::getApplication()->input->getInt('id', 0);
+		if ($id == 0) return false;
 
-		$db =& JFactory::getDbo();
+		$db = JFactory::getDbo();
 		$query = $db->getQuery(true);
 		$query
-			->select('DISTINCT `s`.`id` as `stationID`, `s`.`name` as `name`, `n`.`popularName` as `popularName`, `t`.`time_1`, `t`.`time_2`, `t`.`timemask`, `t`.`turnstiles`')
+			->select('`t`.*, `u`.`name` as `user`, `v`.`variant`')
 			->from('#__rw2_station_tickets as `t`')
-			->leftJoin('#__rw2_directions as `d` ON `d`.`stationID` = `t`.`stationID`')
-			->leftJoin('#__rw2_station_names as `n` ON `n`.`stationID` = `t`.`stationID`')
-			->leftJoin('#__rw2_stations as `s` ON `s`.`id` = `t`.`stationID`')
-			->where("`d`.`directionID` = {$dir} AND `t`.`turnstiles` IS NULL")
-			->order('`d`.`indexID`, `t`.`time_1`')
-		;
+			->where("`stationID` = {$id}")
+			->leftJoin('#__rw2_turnstile_variants as `v` ON `v`.`id` = `t`.`turnstiles`')
+			->leftJoin('#__users as `u` ON `u`.`id` = `t`.`thanks`');
 		$db->setQuery($query);
 		$result = $db->loadObjectList();
-		$stations = array(); //Результирующий массив
+		if (count($result) < 1) return false;
+		$ret = array();
 		foreach ($result as $item) {
-			$sname = (!empty($item->popularName)) ? $item->popularName : $item->name;
-			$t = ($item->time_1 == '00:00:00' && $item->time_2 == '23:59:59') ? JText::_('MOD_DIRECTIONINFO_EVERYTIME') : date("H.i", strtotime(date("Y-m-d ").$item->time_1)).'-'.date("H.i", strtotime(date("Y-m-d ").$item->time_2));
-			if ($item->time_1 == null) $t = JText::_('MOD_DIRECTIONINFO_NODESC');
-			$t .= ' ('.JText::_('MOD_DIRECTIONINFO_TIMEMASK_'.$item->timemask.'_SHORT').')';
-			$stations[$sname][] = $t;
+			$ret[] = self::normalTime($item->time_1, $item->time_2, $item->turnstiles).' ('.JText::_('MOD_STATIONINFO_TIMEMASK_'.$item->timemask.'_SHORT').')';
 		}
-		$result = array();
-		foreach ($stations as $name => $value) {
-			$result[$name] = implode(', ', $value);
-		}
-		return $result;
+
+		return implode(', ', $ret);
 	}
 
-	/* Станции с турникетами */
-	public static function getTurnstiles()
-	{
-		$dir = JFactory::getApplication()->input->getInt('id', 0);
-
-		if ($dir == 0) return false;
-		$db =& JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select('DISTINCT `s`.`id` as `stationID`, `s`.`name` as `name`, `n`.`popularName` as `popularName`, `t`.`turnstiles`')
-			->from('#__rw2_station_tickets as `t`')
-			->leftJoin('#__rw2_directions as `d` ON `d`.`stationID` = `t`.`stationID`')
-			->leftJoin('#__rw2_station_names as `n` ON `n`.`stationID` = `t`.`stationID`')
-			->leftJoin('#__rw2_stations as `s` ON `s`.`id` = `t`.`stationID`')
-			->where("`d`.`directionID` = {$dir} AND `t`.`time_1` IS NULL AND `t`.`time_2` IS NULL AND `t`.`turnstiles` IS NOT NULL")
-			->order('`d`.`indexID`')
-		;
-		$db->setQuery($query);
-		$result = $db->loadObjectList();
+	function normalTime($t1, $t2, $turn) {
+		$result = '';
+		$result = date("H.i", strtotime(date("Y-m-d ".$t1))).' - '.date("H.i", strtotime(date("Y-m-d ".$t2)));
+		if (($t1 == '00:00:00' && $t2 == '23:59:59') || ($t1 == null && $t2 == null && $turn != null)) $result = JText::_('MOD_STATIONINFO_EVERYTIME');
+		if ($t1 == null && $t2 == null && $turn == null) $result = JText::_('MOD_STATIONINFO_NODESC');
 		return $result;
 	}
 }
