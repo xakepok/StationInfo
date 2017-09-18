@@ -5,8 +5,34 @@ class ModStationinfoHelper {
 		return JFactory::getUser()->authorise($p, 'com_railway2');
 	}
 
+	/* Инфа о пересадках */
+	public static function getCrosses()
+	{
+		$id = JFactory::getApplication()->input->getInt('id', 0);
+		if ($id == 0) return false;
+
+		$db =& JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select('`m`.`title_ru` as `metroStation`, `l`.`title_ru` as `metroLine`, `l`.`color`')
+			->from('#__rw2_cross_metro as `c`')
+			->leftJoin('#__rw2_metro_stations as `m` ON `m`.`id` = `c`.`metroID`')
+			->leftJoin('#__rw2_metro_lines as `l` ON `l`.`id` = `m`.`line`')
+			->where("`c`.`stationID` = {$id} AND `m`.`active` = 1 AND `l`.`active` = 1");
+		$db->setQuery($query);
+		$result = $db->loadObjectList();
+		if (empty($result)) return false;
+		$crosses = array();
+		foreach ($result as $cross) {
+			$line = $cross->metroLine.' '.mb_strtolower(JText::_('MOD_STATIONINFO_METRO_LINE'));
+			$crosses[] = "<a class='jutooltip' title='{$line}'><span style='color: {$cross->color}'>{$cross->metroStation}</span></a>";
+		}
+		return implode(', ', $crosses);
+	}
+
 	/* Инфа о станции */
-	public static function getInfo() {
+	public static function getInfo()
+	{
 		$id = JFactory::getApplication()->input->getInt('id', 0);
 		if ($id == 0) return false;
 
@@ -30,7 +56,8 @@ class ModStationinfoHelper {
 	}
 
 	/* Инфа о турникетах */
-	public static function getTurn() {
+	public static function getTurn()
+	{
 		$id = JFactory::getApplication()->input->getInt('id', 0);
 		if ($id == 0) return false;
 
@@ -71,7 +98,8 @@ class ModStationinfoHelper {
 		return implode(', ', $ret);
 	}
 
-	function normalTime($t1, $t2, $turn) {
+	function normalTime($t1, $t2, $turn)
+	{
 		$result = '';
 		$result = date("H.i", strtotime(date("Y-m-d ".$t1))).' - '.date("H.i", strtotime(date("Y-m-d ".$t2)));
 		if (($t1 == '00:00:00' && $t2 == '23:59:59') || ($t1 == null && $t2 == null && $turn != null)) $result = JText::_('MOD_STATIONINFO_EVERYTIME');

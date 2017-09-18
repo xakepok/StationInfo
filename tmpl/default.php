@@ -13,8 +13,18 @@ if (!empty($desc)): ?>
     </div>
 	<?php echo $desc;?>
     </p>
-<?php endif; if (!empty($info)): ?>
+    <?php endif; if (!empty($crosses)): ?>
     <p>
+    <div class="dir-info-title">
+        <h5><?php echo JText::_('MOD_STATIONINFO_METRO_CROSSES'),':'; ?></h5>
+    </div>
+	<?php echo $crosses;?>
+    </p>
+    <?php endif; if (!empty($info)): ?>
+    <p>
+        <div class="dir-info-title">
+            <h5><?php echo JText::_('MOD_STATIONINFO_OTHER'),':'; ?></h5>
+        </div>
         <table>
             <tr>
                 <td><?php echo JText::_('MOD_STATIONINFO_DIRECTION');?></td>

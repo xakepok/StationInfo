@@ -6,6 +6,7 @@ $id         = JFactory::getApplication()->input->getInt('id', 0);
 $desc       = ModStationinfoHelper::getDescTime();
 $info       = ModStationinfoHelper::getInfo();
 $turn       = ModStationinfoHelper::getTurn();
+$crosses    = ModStationinfoHelper::getCrosses();
 
 //$moduleclass_sfx = htmlspecialchars($params->get('moduleclass_sfx'));
 
