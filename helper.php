@@ -92,18 +92,18 @@ class ModStationinfoHelper {
 		if (count($result) < 1) return false;
 		$ret = array();
 		foreach ($result as $item) {
-			$ret[] = self::normalTime($item->time_1, $item->time_2, $item->turnstiles).' ('.JText::_('MOD_STATIONINFO_TIMEMASK_'.$item->timemask.'_SHORT').')';
+			$ret[] = self::normalTime($item->time_1, $item->time_2, $item->turnstiles, $item->tpd).' ('.JText::_('MOD_STATIONINFO_TIMEMASK_'.$item->timemask.'_SHORT').')';
 		}
 
 		return implode(', ', $ret);
 	}
 
-	function normalTime($t1, $t2, $turn)
+	static function normalTime($t1, $t2, $turn, $tpd)
 	{
-		$result = '';
 		$result = date("H.i", strtotime(date("Y-m-d ".$t1))).' - '.date("H.i", strtotime(date("Y-m-d ".$t2)));
 		if (($t1 == '00:00:00' && $t2 == '23:59:59') || ($t1 == null && $t2 == null && $turn != null)) $result = JText::_('MOD_STATIONINFO_EVERYTIME');
-		if ($t1 == null && $t2 == null && $turn == null) $result = JText::_('MOD_STATIONINFO_NODESC');
+		if ($t1 == null && $t2 == null && $turn == null && $tpd == '0') $result = JText::_('MOD_STATIONINFO_NODESC');
+		if ($tpd != '0') $result = JText::_('MOD_STATIONINFO_TPD');
 		return $result;
 	}
 }
