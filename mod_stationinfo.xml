@@ -38,6 +38,15 @@
 					filter="url"
 					validate="url"
 				/>
+				<field
+					name="show_map"
+					type="list"
+					label="MOD_STATIONINFO_SHOW_MAP"
+					description="MOD_STATIONINFO_SHOW_MAP_DESC"
+					>
+					<option value="0">MOD_STATIONINFO_SHOW_MAP_NO</option>
+					<option value="1">MOD_STATIONINFO_SHOW_MAP_YES</option>
+				</field>
 			</fieldset>
 			<fieldset
 					name="advanced">

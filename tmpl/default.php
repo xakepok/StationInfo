@@ -1,5 +1,27 @@
 <?php
 defined('_JEXEC') or die;
+?>
+<?php if (!empty($info->lt) && !empty($info->lg) && $show_map): ?>
+    <script type="text/javascript">
+        ymaps.ready(init);
+        var myMap,
+            myPlacemark;
+
+        function init(){
+            myMap = new ymaps.Map("yamap", {
+                center: [<?php echo $info->lg;?>, <?php echo $info->lt;?>],
+                zoom: 12
+            });
+
+            myPlacemark = new ymaps.Placemark([<?php echo $info->lg;?>, <?php echo $info->lt;?>], {
+                hintContent: '<?php echo $info->name;?>',
+                balloonContent: '<?php echo $info->name;?>'
+            });
+
+            myMap.geoObjects.add(myPlacemark);
+        }
+    </script>
+<?php endif;
 if (!empty($desc)): ?>
     <p>
     <div class="dir-info-title">
@@ -67,4 +89,11 @@ if (!empty($desc)): ?>
             ?>
         </table>
     </p>
-<?php endif; ?>
+<?php endif;
+if (!empty($info->lt) && !empty($info->lg) && $show_map): ?>
+    <div class="dir-info-title">
+        <h5><?php echo JText::_('MOD_STATIONINFO_STATION_ON_MAP');?></h5>
+    </div>
+    <div id="yamap" style="width: 270px; height: 240px;">
+    </div>
+<?php endif;?>
